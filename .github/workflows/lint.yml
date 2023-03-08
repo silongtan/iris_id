@@ -1,25 +1,19 @@
----
-on: pull_request
-name: PR Lints
-jobs:
-  lints:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+name: Clippy
 
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
       - uses: actions-rs/toolchain@v1
         with:
-          pdrofile: minimal
-          toolchain: nightly
-          override: true
+          toolchain: stable
+          profile: minimal
           components: clippy, rustfmt
-
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: {{ '${{ secrets.GITHUB_TOKEN }}' }}
-          args: --all-features
-
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+          override: true
+      - name: Run clippy
+        run: make lint
+  
