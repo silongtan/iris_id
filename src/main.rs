@@ -1,23 +1,40 @@
-use std::env;
+use std::error::Error;
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
 
-use clap::Clap;
+use csv::ReaderBuilder;
 
-#[macro_use]
-mod macros;
-mod cli;
-mod error;
+#[derive(Debug)]
+struct Iris {
+    sepal_length: f64,
+    sepal_width: f64,
+    petal_length: f64,
+    petal_width: f64,
+    species: String,
+}
 
-fn main() {
-    let args = cli::Args::parse();
+fn main() -> Result<(), Box<dyn Error>> {
+    let path = Path::new("data/iris.data");
+    let mut file = File::open(&path)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
 
-    match args.verbose {
-        0 => match args.quiet {
-            0 => env::set_var("RUST_LOG", "{{crate_name}}=info"),
-            1 => env::set_var("RUST_LOG", "{{crate_name}}=warn"),
-            2 => env::set_var("RUST_LOG", "{{crate_name}}=error"),
-            _ => env::set_var("RUST_LOG", "{{crate_name}}=off"),
-        },
-        1 => env::set_var("RUST_LOG", "{{crate_name}}=debug"),
-        _ => env::set_var("RUST_LOG", "{{crate_name}}=trace"),
+    let mut reader = ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(contents.as_bytes());
+
+    for result in reader.records() {
+        let record = result?;
+        let iris = Iris {
+            sepal_length: record[0].parse()?,
+            sepal_width: record[1].parse()?,
+            petal_length: record[2].parse()?,
+            petal_width: record[3].parse()?,
+            species: record[4].to_string(),
+        };
+        println!("{:?}", iris);
     }
+
+    Ok(())
 }
