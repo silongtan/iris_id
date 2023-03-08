@@ -14,7 +14,7 @@ struct Iris {
     species: String,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn load_data() -> Result<(), Box<dyn Error>> {
     let path = Path::new("data/iris.data");
     let mut file = File::open(&path)?;
     let mut contents = String::new();
@@ -37,4 +37,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+fn main() {
+    load_data().unwrap();
 }
